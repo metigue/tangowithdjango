@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect, HttpResponse
 from rango.forms import PageForm, UserForm, UserProfileForm, CategoryForm
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 @login_required
 def add_category(request):
@@ -43,8 +44,7 @@ def index(request):
     return render(request, 'rango/index.html', context_dict)
 
 def about(request):
-    context_dict = {'boldmessage': "I am bold font from the context"}
-    return render(request, 'rango/about.html', context_dict)
+    return render(request, 'rango/about.html', {})
 
 def category(request, category_name_slug):
 
@@ -171,25 +171,29 @@ def user_login(request):
 
         # Use Django's machinery to attempt to see if the username/password
         # combination is valid - a User object is returned if it is.
-        user = authenticate(username=username, password=password)
-
+        if User.objects.filter(username=username).exists():
+            user = authenticate(username=username, password=password)
         # If we have a User object, the details are correct.
         # If None (Python's way of representing the absence of a value), no user
         # with matching credentials was found.
-        if user:
-            # Is the account active? It could have been disabled.
-            if user.is_active:
-                # If the account is valid and active, we can log the user in.
-                # We'll send the user back to the homepage.
-                login(request, user)
-                return HttpResponseRedirect('/rango/')
+            if user:
+                # Is the account active? It could have been disabled.
+                if user.is_active:
+                    # If the account is valid and active, we can log the user in.
+                    # We'll send the user back to the homepage.
+                    login(request, user)
+                    return HttpResponseRedirect('/rango/')
+                else:
+                    # An inactive account was used - no logging in!
+                    return HttpResponse("Your Rango account is disabled.")
             else:
-                # An inactive account was used - no logging in!
-                return HttpResponse("Your Rango account is disabled.")
+                # Bad pw was provided. So we can't log the user in.
+                print "Incorrect password: {0}, {1}".format(username, password)
+                return HttpResponse("Incorrect password.")
         else:
-            # Bad login details were provided. So we can't log the user in.
-            print "Invalid login details: {0}, {1}".format(username, password)
-            return HttpResponse("Invalid login details supplied.")
+                # Bad un was provided. So we can't log the user in.
+                print "Incorrect username: {0}, {1}".format(username, password)
+                return HttpResponse("Incorrect username.")
 
     # The request is not a HTTP POST, so display the login form.
     # This scenario would most likely be a HTTP GET.
@@ -200,7 +204,7 @@ def user_login(request):
 
 @login_required
 def restricted(request):
-    return HttpResponse("Since you're logged in, you can see this text!")
+    return render(request, 'rango/restricted.html', {})
 
 # Use the login_required() decorator to ensure only those logged in can access the view.
 @login_required
