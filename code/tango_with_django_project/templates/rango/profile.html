@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+
+{% block body_block %}
+<div class="page-header">
+                <h1>Profile</h1>
+            </div>
+<div>
+                <h3>Name:</h3>
+		<p>{{ name }}</p>
+            </div>
+<div>
+                <h3>Name:</h3>
+		<p><img src="{{ MEDIA_ROOT }}{{ pic }}" alt= {{ name }} /></p>
+            </div>
+<div>
+                <h3>Website:</h3>
+		<p><a href="{{ site }}">{{ site }}</a></p>
+            </div>
+
+{% endblock %}
