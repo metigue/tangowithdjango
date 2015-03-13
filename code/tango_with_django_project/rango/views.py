@@ -9,6 +9,65 @@ from datetime import datetime
 from rango.bing_search import run_query
 
 
+def register_profile(request):
+
+    # A boolean value for telling the template whether the registration was successful.
+    # Set to False initially. Code changes value to True when registration succeeds.
+    registered = False
+    user = request.user
+
+    # If it's a HTTP POST, we're interested in processing form data.
+    if request.method == 'POST':
+        # Attempt to grab information from the raw form information.
+        profile_form = UserProfileForm(data=request.POST)
+
+        # If form is valid
+        if  profile_form.is_valid():
+            # sort out the UserProfile instance.
+            # Since we need to set the user attribute ourselves, we set commit=False.
+            # This delays saving the model until we're ready to avoid integrity problems.
+            profile = profile_form.save(commit=False)
+            profile.user = user
+
+            # Did the user provide a profile picture?
+            # If so, we need to get it from the input form and put it in the UserProfile model.
+            if 'picture' in request.FILES:
+                profile.picture = request.FILES['picture']
+
+            # Now we save the UserProfile model instance.
+            profile.save()
+
+            # Update our variable to tell the template registration was successful.
+            registered = True
+
+        # Invalid form or forms - mistakes or something else?
+        # Print problems to the terminal.
+        # They'll also be shown to the user.
+        else:
+            print profile_form.errors
+
+    # Not a HTTP POST, so we render our form using two ModelForm instances.
+    # These forms will be blank, ready for user input.
+    else:
+        profile_form = UserProfileForm()
+
+    # Render the template depending on the context.
+    return render(request,
+            'rango/profile_registration.html',
+            {'profile_form': profile_form, 'registered': registered} )
+
+def profile(request):
+    if request.user.userprofile == False: # Probably won't work, but the idea is to redirect to create profile if they don't have one.
+        return redirect(register_profile)
+    profile = request.user.userprofile
+    name = request.user.username
+    picture = profile.picture #Surely there is a way to automate this? .attributes or something
+    website = profile.website
+    return render(request,
+            'rango/profile.html',
+            {'pic': picture, 'site': website, 'name' : name} )
+
+
 def track_url(request):
     page_id = None
     url = '/rango/'
