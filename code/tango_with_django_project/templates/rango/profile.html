@@ -9,9 +9,14 @@
                 <h3>Name:</h3>
 		<p>{{ name }}</p>
             </div>
+
 <div>
-                <h3>Pciture:</h3>
+                <h3>Picture:</h3>
+	{% if picture %}
 		<p><img src="{{ MEDIA_URL }}{{ pic }}" alt= {{ name }} /></p>
+	{% else %}
+	<p>No Picture</p>
+	{% endif %}
             </div>
 <div>
                 <h3>Website:</h3>

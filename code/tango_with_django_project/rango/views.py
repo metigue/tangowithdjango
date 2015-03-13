@@ -7,15 +7,19 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from datetime import datetime
 from rango.bing_search import run_query
+from django.core import exceptions
 
 
 def register_profile(request):
 
     # A boolean value for telling the template whether the registration was successful.
     # Set to False initially. Code changes value to True when registration succeeds.
-    registered = False
     user = request.user
-
+    registered = True
+    try:
+        user.userprofile = (user.userprofile is not None)
+    except exceptions.ObjectDoesNotExist:
+        registered = False
     # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
         # Attempt to grab information from the raw form information.
@@ -57,15 +61,21 @@ def register_profile(request):
             {'profile_form': profile_form, 'registered': registered} )
 
 def profile(request):
-    if request.user.userprofile == False: # Probably won't work, but the idea is to redirect to create profile if they don't have one.
+    try:
+        profile = request.user.userprofile
+    except exceptions.ObjectDoesNotExist:
         return redirect(register_profile)
-    profile = request.user.userprofile
+    pict = False
     name = request.user.username
-    picture = profile.picture #Surely there is a way to automate this? .attributes or something
+    if profile.picture != "":
+        picture = profile.picture #Surely there is a way to automate this? .attributes or something
+        pict = True
+    else:
+        picture = ''
     website = profile.website
     return render(request,
             'rango/profile.html',
-            {'pic': picture, 'site': website, 'name' : name} )
+            {'pic': picture, 'picture': pict, 'site': website, 'name' : name} )
 
 
 def track_url(request):

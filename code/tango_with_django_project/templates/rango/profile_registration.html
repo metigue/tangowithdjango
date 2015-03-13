@@ -5,6 +5,9 @@
 <div class="page-header">
                 <h1>Create Profile</h1>
             </div>
+	{% if registered %}
+<p>Thank you for creating a profile</p>
+	{% else %}
 
 <form id="user_form" method="post" action="{% url 'add_profile' %}"
                 enctype="multipart/form-data">
@@ -12,4 +15,5 @@
          {{ profile_form.as_p }}
             <input type="submit" name="submit" value="Create Profile" />
         </form>
+{% endif %}
 {% endblock %}
